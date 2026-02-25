@@ -31,14 +31,18 @@ button{
     font-size:15px;
 }
 
+.category-btn{
+    background:#17a2b8;
+    color:white;
+    font-weight:bold;
+}
+
 .option{
     background:#e9ecef;
     font-weight:bold;
 }
 
-.option:hover{
-    background:#ced4da;
-}
+.option:hover{background:#ced4da;}
 
 .correct{background:#28a745 !important;color:white;}
 .wrong{background:#dc3545 !important;color:white;}
@@ -48,27 +52,17 @@ button{
     color:white;
     font-weight:900;
     font-size:16px;
+    opacity:0.6;
 }
 
-.back-btn{
-    background:#6c757d;
-    color:white;
-    font-weight:bold;
+.next-btn.enabled{
+    opacity:1;
 }
 
 .home-btn{
     background:#ff9800;
     color:white;
     font-weight:bold;
-}
-
-input{
-    width:100%;
-    padding:12px;
-    margin:8px 0;
-    border-radius:6px;
-    border:1px solid #ccc;
-    font-size:15px;
 }
 
 .top-bar{
@@ -98,178 +92,179 @@ input{
 
 <div class="container" id="app">
 <h2>Quiz Master Pro</h2>
-<h3>Select Number of Questions</h3>
+<h3>Select Category</h3>
 
-<button onclick="startQuiz(5)">5 Questions</button>
-<button onclick="startQuiz(10)">10 Questions</button>
-<button onclick="startQuiz(15)">15 Questions</button>
-
-<h3>Or Enter Custom Number</h3>
-<input type="number" id="customNumber" placeholder="Enter number (max 300)">
-<button onclick="startCustomQuiz()">Start Custom Quiz</button>
+<button class="category-btn" onclick="chooseCategory('medical')">Medical</button>
+<button class="category-btn" onclick="chooseCategory('flags')">Flags</button>
+<button class="category-btn" onclick="chooseCategory('capitals')">Capitals</button>
+<button class="category-btn" onclick="chooseCategory('animals')">Animals</button>
 </div>
 
 <script>
 
-// ====== GENERATE 300 MCQs ======
-const questionBank=[];
+// ===== SAMPLE QUESTIONS =====
+const questionBank={
+medical:[],
+flags:[],
+capitals:[],
+animals:[]
+};
+
+// Generate 300 per category
 for(let i=1;i<=300;i++){
-    questionBank.push({
-        q:"Medical Question "+i+"?",
-        o:["Option A","Option B","Option C","Option D"],
-        a:3
-    });
+questionBank.medical.push({
+q:"Medical Question "+i+"?",
+o:["Option A","Option B","Option C","Option D"],
+a:2
+});
+
+questionBank.flags.push({
+q:"Flag Question "+i+"?",
+o:["Country A","Country B","Country C","Country D"],
+a:1
+});
+
+questionBank.capitals.push({
+q:"Capital Question "+i+"?",
+o:["City A","City B","City C","City D"],
+a:0
+});
+
+questionBank.animals.push({
+q:"Animal Question "+i+"?",
+o:["Animal A","Animal B","Animal C","Animal D"],
+a:3
+});
 }
 
+let selectedCategory="";
 let quiz=[];
 let current=0;
 let score=0;
-let timer;
-let timeLeft=15;
-let questionLimit=10;
 let answered=false;
 
-// ===== CUSTOM QUIZ =====
-function startCustomQuiz(){
-    let num=parseInt(document.getElementById("customNumber").value);
+// ===== CATEGORY SELECT =====
+function chooseCategory(cat){
+selectedCategory=cat;
 
-    if(isNaN(num) || num<=0){
-        alert("Please enter valid number");
-        return;
-    }
-
-    if(num>300){
-        alert("Maximum 300 questions allowed");
-        return;
-    }
-
-    startQuiz(num);
+document.getElementById("app").innerHTML=`
+<h2>${cat.toUpperCase()} Quiz</h2>
+<h3>Select Number of Questions</h3>
+<button onclick="startQuiz(5)">5 Questions</button>
+<button onclick="startQuiz(10)">10 Questions</button>
+<button onclick="startQuiz(15)">15 Questions</button>
+<button class="home-btn" onclick="goHome()">Back</button>
+`;
 }
 
 // ===== START QUIZ =====
 function startQuiz(limit){
-    questionLimit=limit;
-    quiz=shuffle([...questionBank]).slice(0,questionLimit);
-    current=0;
-    score=0;
+quiz=shuffle([...questionBank[selectedCategory]]).slice(0,limit);
+current=0;
+score=0;
 
-    document.getElementById("app").innerHTML=`
-    <div class="top-bar">
-        <div>Score: <span id="score">0</span></div>
-        <div>Time: <span id="timer">15</span>s</div>
-    </div>
-    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-    <h3 id="question"></h3>
-    <div id="options"></div>
-
-    <button class="next-btn" onclick="nextQuestion()">NEXT ➜</button>
-    <button class="back-btn" onclick="goBack()">⬅ BACK</button>
-    <button class="home-btn" onclick="goHome()">🏠 HOME</button>
-    `;
-    loadQuestion();
+document.getElementById("app").innerHTML=`
+<div class="top-bar">
+<div>Score: <span id="score">0</span></div>
+<div>Question ${current+1} of ${quiz.length}</div>
+</div>
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+<h3 id="question"></h3>
+<div id="options"></div>
+<button class="next-btn" id="nextBtn" onclick="nextQuestion()" disabled>NEXT ➜</button>
+<button class="home-btn" onclick="goHome()">🏠 HOME</button>
+`;
+loadQuestion();
 }
 
 // ===== LOAD QUESTION =====
 function loadQuestion(){
-    answered=false;
-    timeLeft=15;
-    document.getElementById("timer").innerText=timeLeft;
-    startTimer();
-    updateProgress();
+answered=false;
+document.getElementById("nextBtn").disabled=true;
+document.getElementById("nextBtn").classList.remove("enabled");
 
-    const q=quiz[current];
-    document.getElementById("question").innerText=q.q;
+updateProgress();
 
-    const optDiv=document.getElementById("options");
-    optDiv.innerHTML="";
-    q.o.forEach((opt,i)=>{
-        const btn=document.createElement("button");
-        btn.innerText=opt;
-        btn.classList.add("option");
-        btn.onclick=()=>selectAnswer(i,btn);
-        optDiv.appendChild(btn);
-    });
+const q=quiz[current];
+document.getElementById("question").innerText=q.q;
+
+const optDiv=document.getElementById("options");
+optDiv.innerHTML="";
+q.o.forEach((opt,i)=>{
+const btn=document.createElement("button");
+btn.innerText=opt;
+btn.classList.add("option");
+btn.onclick=()=>selectAnswer(i,btn);
+optDiv.appendChild(btn);
+});
 }
 
 // ===== SELECT ANSWER =====
 function selectAnswer(index,btn){
-    if(answered) return;
-    answered=true;
-    clearInterval(timer);
+if(answered) return;
+answered=true;
 
-    const correctIndex=quiz[current].a;
-    const buttons=document.querySelectorAll(".option");
-    buttons[correctIndex].classList.add("correct");
+const correctIndex=quiz[current].a;
+const buttons=document.querySelectorAll(".option");
 
-    if(index===correctIndex){
-        score++;
-        document.getElementById("score").innerText=score;
-    }else{
-        if(btn) btn.classList.add("wrong");
-    }
+buttons[correctIndex].classList.add("correct");
+
+if(index===correctIndex){
+score++;
+document.getElementById("score").innerText=score;
+}else{
+btn.classList.add("wrong");
+}
+
+document.getElementById("nextBtn").disabled=false;
+document.getElementById("nextBtn").classList.add("enabled");
 }
 
 // ===== NEXT =====
 function nextQuestion(){
-    clearInterval(timer);
-    current++;
-    if(current<quiz.length){
-        loadQuestion();
-    }else{
-        showResult();
-    }
+current++;
+if(current<quiz.length){
+startQuizScreen();
+}else{
+showResult();
+}
 }
 
-// ===== BACK =====
-function goBack(){
-    if(current>0){
-        current--;
-        loadQuestion();
-    }
-}
-
-// ===== HOME =====
-function goHome(){
-    location.reload();
+function startQuizScreen(){
+document.querySelector(".top-bar div:nth-child(2)").innerText=
+"Question "+(current+1)+" of "+quiz.length;
+loadQuestion();
 }
 
 // ===== RESULT =====
 function showResult(){
-    let percentage=Math.round((score/quiz.length)*100);
-
-    document.getElementById("app").innerHTML=`
-    <h2>Quiz Finished 🎉</h2>
-    <h3>Your Score: ${score} / ${quiz.length}</h3>
-    <h3>Percentage: ${percentage}%</h3>
-    <button class="home-btn" onclick="goHome()">🏠 Back To Home</button>
-    `;
+let percent=Math.round((score/quiz.length)*100);
+document.getElementById("app").innerHTML=`
+<h2>Quiz Finished 🎉</h2>
+<h3>Your Score: ${score} / ${quiz.length}</h3>
+<h3>Percentage: ${percent}%</h3>
+<button class="home-btn" onclick="goHome()">Back To Home</button>
+`;
 }
 
-// ===== TIMER =====
-function startTimer(){
-    timer=setInterval(()=>{
-        timeLeft--;
-        document.getElementById("timer").innerText=timeLeft;
-        if(timeLeft<=0){
-            clearInterval(timer);
-            selectAnswer(-1,null);
-        }
-    },1000);
+// ===== HOME =====
+function goHome(){
+location.reload();
 }
 
 // ===== PROGRESS =====
 function updateProgress(){
-    let percent=((current)/quiz.length)*100;
-    document.getElementById("progressFill").style.width=percent+"%";
+let percent=(current/quiz.length)*100;
+document.getElementById("progressFill").style.width=percent+"%";
 }
 
 // ===== SHUFFLE =====
 function shuffle(array){
-    for(let i=array.length-1;i>0;i--){
-        const j=Math.floor(Math.random()*(i+1));
-        [array[i],array[j]]=[array[j],array[i]];
-    }
-    return array;
+for(let i=array.length-1;i>0;i--){
+const j=Math.floor(Math.random()*(i+1));
+[array[i],array[j]]=[array[j],array[i]];
+}
+return array;
 }
 
 </script>
