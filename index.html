@@ -1,272 +1,93 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quiz Master Pro</title>
+    <title>Age Calculator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #4e73df, #1cc88a);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
 
-<style>
-body{
-    font-family:Arial;
-    margin:0;
-    background:#f4f6f9;
-}
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            width: 300px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
 
-.container{
-    max-width:600px;
-    margin:30px auto;
-    padding:20px;
-    background:white;
-    border-radius:12px;
-    box-shadow:0 5px 20px rgba(0,0,0,0.1);
-}
+        h2 {
+            margin-bottom: 20px;
+        }
 
-button{
-    width:100%;
-    padding:14px;
-    margin:8px 0;
-    border:none;
-    border-radius:6px;
-    cursor:pointer;
-    font-size:15px;
-}
+        input {
+            padding: 10px;
+            width: 100%;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
 
-.category-btn{
-    background:#17a2b8;
-    color:white;
-    font-weight:bold;
-}
+        button {
+            padding: 10px;
+            width: 100%;
+            background: #4e73df;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
 
-.option{
-    background:#e9ecef;
-    font-weight:bold;
-}
+        button:hover {
+            background: #2e59d9;
+        }
 
-.option:hover{background:#ced4da;}
-
-.correct{background:#28a745 !important;color:white;}
-.wrong{background:#dc3545 !important;color:white;}
-
-.next-btn{
-    background:#0056ff;
-    color:white;
-    font-weight:900;
-    font-size:16px;
-    opacity:0.6;
-}
-
-.next-btn.enabled{
-    opacity:1;
-}
-
-.home-btn{
-    background:#ff9800;
-    color:white;
-    font-weight:bold;
-}
-
-.top-bar{
-    display:flex;
-    justify-content:space-between;
-    font-weight:bold;
-}
-
-.progress-bar{
-    height:8px;
-    background:#ddd;
-    border-radius:5px;
-    margin:10px 0;
-}
-
-.progress-fill{
-    height:8px;
-    background:#28a745;
-    width:0%;
-    border-radius:5px;
-    transition:0.3s;
-}
-</style>
+        #result {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="container" id="app">
-<h2>Quiz Master Pro</h2>
-<h3>Select Category</h3>
-
-<button class="category-btn" onclick="chooseCategory('medical')">Medical</button>
-<button class="category-btn" onclick="chooseCategory('flags')">Flags</button>
-<button class="category-btn" onclick="chooseCategory('capitals')">Capitals</button>
-<button class="category-btn" onclick="chooseCategory('animals')">Animals</button>
+<div class="container">
+    <h2>Age Calculator</h2>
+    <input type="date" id="dob">
+    <button onclick="calculateAge()">Calculate Age</button>
+    <div id="result"></div>
 </div>
 
 <script>
+    function calculateAge() {
+        const dob = new Date(document.getElementById("dob").value);
+        const today = new Date();
 
-// ===== SAMPLE QUESTIONS =====
-const questionBank={
-medical:[],
-flags:[],
-capitals:[],
-animals:[]
-};
+        let years = today.getFullYear() - dob.getFullYear();
+        let months = today.getMonth() - dob.getMonth();
+        let days = today.getDate() - dob.getDate();
 
-// Generate 300 per category
-for(let i=1;i<=300;i++){
-questionBank.medical.push({
-q:"Medical Question "+i+"?",
-o:["Option A","Option B","Option C","Option D"],
-a:2
-});
+        if (days < 0) {
+            months--;
+            days += new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+        }
 
-questionBank.flags.push({
-q:"Flag Question "+i+"?",
-o:["Country A","Country B","Country C","Country D"],
-a:1
-});
+        if (months < 0) {
+            years--;
+            months += 12;
+        }
 
-questionBank.capitals.push({
-q:"Capital Question "+i+"?",
-o:["City A","City B","City C","City D"],
-a:0
-});
-
-questionBank.animals.push({
-q:"Animal Question "+i+"?",
-o:["Animal A","Animal B","Animal C","Animal D"],
-a:3
-});
-}
-
-let selectedCategory="";
-let quiz=[];
-let current=0;
-let score=0;
-let answered=false;
-
-// ===== CATEGORY SELECT =====
-function chooseCategory(cat){
-selectedCategory=cat;
-
-document.getElementById("app").innerHTML=`
-<h2>${cat.toUpperCase()} Quiz</h2>
-<h3>Select Number of Questions</h3>
-<button onclick="startQuiz(5)">5 Questions</button>
-<button onclick="startQuiz(10)">10 Questions</button>
-<button onclick="startQuiz(15)">15 Questions</button>
-<button class="home-btn" onclick="goHome()">Back</button>
-`;
-}
-
-// ===== START QUIZ =====
-function startQuiz(limit){
-quiz=shuffle([...questionBank[selectedCategory]]).slice(0,limit);
-current=0;
-score=0;
-
-document.getElementById("app").innerHTML=`
-<div class="top-bar">
-<div>Score: <span id="score">0</span></div>
-<div>Question ${current+1} of ${quiz.length}</div>
-</div>
-<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-<h3 id="question"></h3>
-<div id="options"></div>
-<button class="next-btn" id="nextBtn" onclick="nextQuestion()" disabled>NEXT ➜</button>
-<button class="home-btn" onclick="goHome()">🏠 HOME</button>
-`;
-loadQuestion();
-}
-
-// ===== LOAD QUESTION =====
-function loadQuestion(){
-answered=false;
-document.getElementById("nextBtn").disabled=true;
-document.getElementById("nextBtn").classList.remove("enabled");
-
-updateProgress();
-
-const q=quiz[current];
-document.getElementById("question").innerText=q.q;
-
-const optDiv=document.getElementById("options");
-optDiv.innerHTML="";
-q.o.forEach((opt,i)=>{
-const btn=document.createElement("button");
-btn.innerText=opt;
-btn.classList.add("option");
-btn.onclick=()=>selectAnswer(i,btn);
-optDiv.appendChild(btn);
-});
-}
-
-// ===== SELECT ANSWER =====
-function selectAnswer(index,btn){
-if(answered) return;
-answered=true;
-
-const correctIndex=quiz[current].a;
-const buttons=document.querySelectorAll(".option");
-
-buttons[correctIndex].classList.add("correct");
-
-if(index===correctIndex){
-score++;
-document.getElementById("score").innerText=score;
-}else{
-btn.classList.add("wrong");
-}
-
-document.getElementById("nextBtn").disabled=false;
-document.getElementById("nextBtn").classList.add("enabled");
-}
-
-// ===== NEXT =====
-function nextQuestion(){
-current++;
-if(current<quiz.length){
-startQuizScreen();
-}else{
-showResult();
-}
-}
-
-function startQuizScreen(){
-document.querySelector(".top-bar div:nth-child(2)").innerText=
-"Question "+(current+1)+" of "+quiz.length;
-loadQuestion();
-}
-
-// ===== RESULT =====
-function showResult(){
-let percent=Math.round((score/quiz.length)*100);
-document.getElementById("app").innerHTML=`
-<h2>Quiz Finished 🎉</h2>
-<h3>Your Score: ${score} / ${quiz.length}</h3>
-<h3>Percentage: ${percent}%</h3>
-<button class="home-btn" onclick="goHome()">Back To Home</button>
-`;
-}
-
-// ===== HOME =====
-function goHome(){
-location.reload();
-}
-
-// ===== PROGRESS =====
-function updateProgress(){
-let percent=(current/quiz.length)*100;
-document.getElementById("progressFill").style.width=percent+"%";
-}
-
-// ===== SHUFFLE =====
-function shuffle(array){
-for(let i=array.length-1;i>0;i--){
-const j=Math.floor(Math.random()*(i+1));
-[array[i],array[j]]=[array[j],array[i]];
-}
-return array;
-}
-
+        document.getElementById("result").innerHTML =
+            "You are " + years + " Years, " + months + " Months, " + days + " Days old.";
+    }
 </script>
+
 </body>
 </html>
