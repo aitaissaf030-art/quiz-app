@@ -1,40 +1,37 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Unit Converter Pro+</title>
-
 <style>
-*{
-box-sizing:border-box;
-}
 
 body{
 margin:0;
-font-family: 'Segoe UI', sans-serif;
-background: linear-gradient(135deg,#141e30,#243b55);
+font-family:'Segoe UI', sans-serif;
+height:100vh;
 display:flex;
 justify-content:center;
 align-items:center;
-min-height:100vh;
-color:white;
+background: linear-gradient(-45deg, #667eea, #764ba2, #43cea2, #185a9d);
+background-size: 400% 400%;
+animation: gradientBG 12s ease infinite;
+}
+
+@keyframes gradientBG {
+0% { background-position: 0% 50%; }
+50% { background-position: 100% 50%; }
+100% { background-position: 0% 50%; }
 }
 
 .container{
-width:95%;
-max-width:420px;
-background:rgba(255,255,255,0.08);
-backdrop-filter:blur(15px);
-padding:20px;
-border-radius:20px;
-box-shadow:0 20px 40px rgba(0,0,0,0.5);
+background: rgba(255,255,255,0.12);
+backdrop-filter: blur(18px);
+padding: 25px;
+border-radius: 20px;
+width: 95%;
+max-width: 420px;
+box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+color: white;
 }
 
 h2{
 text-align:center;
 margin-bottom:20px;
-font-weight:600;
 }
 
 select,input{
@@ -44,15 +41,9 @@ margin:8px 0;
 border-radius:12px;
 border:none;
 font-size:15px;
-outline:none;
 }
 
-input{
-background:white;
-color:black;
-}
-
-select{
+input, select{
 background:white;
 color:black;
 }
@@ -63,8 +54,7 @@ padding:12px;
 margin-top:8px;
 border:none;
 border-radius:12px;
-background:#00c6ff;
-background:linear-gradient(to right,#0072ff,#00c6ff);
+background:linear-gradient(to right,#ff512f,#dd2476);
 color:white;
 font-size:16px;
 cursor:pointer;
@@ -72,11 +62,7 @@ transition:0.3s;
 }
 
 button:hover{
-opacity:0.85;
-}
-
-.swap{
-background:linear-gradient(to right,#ff512f,#dd2476);
+transform:scale(1.03);
 }
 
 .result{
@@ -86,150 +72,4 @@ font-weight:600;
 text-align:center;
 }
 
-.footer{
-margin-top:15px;
-font-size:12px;
-text-align:center;
-opacity:0.7;
-}
 </style>
-</head>
-
-<body>
-
-<div class="container">
-
-<h2>Unit Converter Pro+</h2>
-
-<select id="category" onchange="updateUnits()">
-<option value="length">Length</option>
-<option value="weight">Weight</option>
-<option value="temperature">Temperature</option>
-<option value="speed">Speed</option>
-<option value="time">Time</option>
-<option value="area">Area</option>
-</select>
-
-<input type="number" id="inputValue" placeholder="Enter value">
-
-<select id="fromUnit"></select>
-<select id="toUnit"></select>
-
-<button onclick="convert()">Convert</button>
-<button class="swap" onclick="swapUnits()">Swap Units</button>
-
-<div class="result" id="result"></div>
-
-<div class="footer">
-Offline • No Ads • Fast & Accurate
-</div>
-
-</div>
-
-<script>
-
-const data = {
-
-length:{
-Meter:1,
-Kilometer:1000,
-Centimeter:0.01,
-Millimeter:0.001,
-Mile:1609.34,
-Yard:0.9144
-},
-
-weight:{
-Kilogram:1,
-Gram:0.001,
-Pound:0.453592,
-Ounce:0.0283495
-},
-
-speed:{
-"Meter/Second":1,
-"Kilometer/Hour":0.277778,
-"Mile/Hour":0.44704
-},
-
-time:{
-Second:1,
-Minute:60,
-Hour:3600,
-Day:86400
-},
-
-area:{
-"Square Meter":1,
-"Square Kilometer":1000000,
-Hectare:10000,
-Acre:4046.86
-},
-
-temperature:["Celsius","Fahrenheit","Kelvin"]
-
-};
-
-function updateUnits(){
-let cat=document.getElementById("category").value;
-let from=document.getElementById("fromUnit");
-let to=document.getElementById("toUnit");
-
-from.innerHTML="";
-to.innerHTML="";
-
-if(cat==="temperature"){
-data.temperature.forEach(u=>{
-from.innerHTML+=`<option>${u}</option>`;
-to.innerHTML+=`<option>${u}</option>`;
-});
-}else{
-for(let unit in data[cat]){
-from.innerHTML+=`<option>${unit}</option>`;
-to.innerHTML+=`<option>${unit}</option>`;
-}
-}
-}
-
-updateUnits();
-
-function convert(){
-let cat=document.getElementById("category").value;
-let val=parseFloat(document.getElementById("inputValue").value);
-let from=document.getElementById("fromUnit").value;
-let to=document.getElementById("toUnit").value;
-
-if(isNaN(val)){
-document.getElementById("result").innerText="Enter valid number";
-return;
-}
-
-let result;
-
-if(cat==="temperature"){
-if(from==="Celsius"&&to==="Fahrenheit") result=(val*9/5)+32;
-else if(from==="Fahrenheit"&&to==="Celsius") result=(val-32)*5/9;
-else if(from==="Celsius"&&to==="Kelvin") result=val+273.15;
-else if(from==="Kelvin"&&to==="Celsius") result=val-273.15;
-else if(from==="Fahrenheit"&&to==="Kelvin") result=((val-32)*5/9)+273.15;
-else if(from==="Kelvin"&&to==="Fahrenheit") result=((val-273.15)*9/5)+32;
-else result=val;
-}else{
-result=val * data[cat][from] / data[cat][to];
-}
-
-document.getElementById("result").innerText="Result: "+result.toFixed(6);
-}
-
-function swapUnits(){
-let from=document.getElementById("fromUnit");
-let to=document.getElementById("toUnit");
-let temp=from.value;
-from.value=to.value;
-to.value=temp;
-}
-
-</script>
-
-</body>
-</html>
