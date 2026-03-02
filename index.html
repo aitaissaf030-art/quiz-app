@@ -1,92 +1,92 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Age Calculator</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #4e73df, #1cc88a);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-
-        .container {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            text-align: center;
-            width: 300px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        }
-
-        h2 {
-            margin-bottom: 20px;
-        }
-
-        input {
-            padding: 10px;
-            width: 100%;
-            margin-bottom: 15px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-        }
-
-        button {
-            padding: 10px;
-            width: 100%;
-            background: #4e73df;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: #2e59d9;
-        }
-
-        #result {
-            margin-top: 20px;
-            font-weight: bold;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Unit Converter</title>
+<style>
+body { font-family: Arial; padding:20px; background:#f2f2f2; }
+h2 { color:#333; }
+select,input { padding:8px; margin:5px 0; width:100%; }
+button { padding:10px; width:100%; background:#2196F3; color:white; border:none; }
+.result { margin-top:15px; font-weight:bold; }
+</style>
 </head>
-
 <body>
 
-<div class="container">
-    <h2>Age Calculator</h2>
-    <input type="date" id="dob">
-    <button onclick="calculateAge()">Calculate Age</button>
-    <div id="result"></div>
-</div>
+<h2>Unit Converter</h2>
+
+<select id="category">
+<option value="length">Length</option>
+<option value="weight">Weight</option>
+<option value="temp">Temperature</option>
+</select>
+
+<input type="number" id="inputValue" placeholder="Enter value">
+
+<select id="fromUnit"></select>
+<select id="toUnit"></select>
+
+<button onclick="convert()">Convert</button>
+
+<div class="result" id="result"></div>
 
 <script>
-    function calculateAge() {
-        const dob = new Date(document.getElementById("dob").value);
-        const today = new Date();
 
-        let years = today.getFullYear() - dob.getFullYear();
-        let months = today.getMonth() - dob.getMonth();
-        let days = today.getDate() - dob.getDate();
+const units = {
+length: ["Meter","Kilometer","Centimeter"],
+weight: ["Kilogram","Gram","Pound"],
+temp: ["Celsius","Fahrenheit","Kelvin"]
+};
 
-        if (days < 0) {
-            months--;
-            days += new Date(today.getFullYear(), today.getMonth(), 0).getDate();
-        }
+function updateUnits(){
+let cat = document.getElementById("category").value;
+let from = document.getElementById("fromUnit");
+let to = document.getElementById("toUnit");
+from.innerHTML="";
+to.innerHTML="";
+units[cat].forEach(u=>{
+from.innerHTML+=`<option>${u}</option>`;
+to.innerHTML+=`<option>${u}</option>`;
+});
+}
 
-        if (months < 0) {
-            years--;
-            months += 12;
-        }
+document.getElementById("category").addEventListener("change",updateUnits);
+updateUnits();
 
-        document.getElementById("result").innerHTML =
-            "You are " + years + " Years, " + months + " Months, " + days + " Days old.";
-    }
+function convert(){
+let cat=document.getElementById("category").value;
+let val=parseFloat(document.getElementById("inputValue").value);
+let from=document.getElementById("fromUnit").value;
+let to=document.getElementById("toUnit").value;
+let result=0;
+
+if(cat==="length"){
+if(from==="Meter"&&to==="Kilometer") result=val/1000;
+else if(from==="Kilometer"&&to==="Meter") result=val*1000;
+else if(from==="Meter"&&to==="Centimeter") result=val*100;
+else if(from==="Centimeter"&&to==="Meter") result=val/100;
+else result=val;
+}
+
+if(cat==="weight"){
+if(from==="Kilogram"&&to==="Gram") result=val*1000;
+else if(from==="Gram"&&to==="Kilogram") result=val/1000;
+else if(from==="Kilogram"&&to==="Pound") result=val*2.20462;
+else if(from==="Pound"&&to==="Kilogram") result=val/2.20462;
+else result=val;
+}
+
+if(cat==="temp"){
+if(from==="Celsius"&&to==="Fahrenheit") result=(val*9/5)+32;
+else if(from==="Fahrenheit"&&to==="Celsius") result=(val-32)*5/9;
+else if(from==="Celsius"&&to==="Kelvin") result=val+273.15;
+else if(from==="Kelvin"&&to==="Celsius") result=val-273.15;
+else result=val;
+}
+
+document.getElementById("result").innerText="Result: "+result;
+}
+
 </script>
 
 </body>
